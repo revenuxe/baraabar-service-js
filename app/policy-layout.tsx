@@ -1,0 +1,5 @@
+import { CompanyHeader, CompanyFooter, ContactDetails } from './company-components';
+import type { PolicySection } from './legal-content';
+export function PolicyLayout({title,description,sections}:{title:string;description:string;sections:PolicySection[]}) {
+  return <><CompanyHeader/><main><div className="policy-hero"><h1>{title}</h1><p>{description}</p><span>Effective 25 November 2026</span></div><div className="policy-layout"><aside><details open><summary>On this page</summary><nav aria-label={`${title} contents`}>{sections.map(section=><a href={`#${section.id}`} key={section.id}>{section.title}</a>)}<a href="#policy-contact">Contact Baraabar</a></nav></details></aside><article className="policy-article">{sections.map(section=><section id={section.id} key={section.id}><h2>{section.title}</h2>{section.paragraphs.map((paragraph,i)=><p key={i}>{paragraph}</p>)}</section>)}<section id="policy-contact"><h2>Contact Baraabar</h2><p>For service questions, complaints, or privacy requests, use the contact details below. Please include your enquiry or service reference if available.</p><ContactDetails/></section></article></div></main><CompanyFooter/></>;
+}
