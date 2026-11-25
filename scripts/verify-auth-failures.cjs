@@ -15,7 +15,7 @@ function load(source, dependencies, env = {}) {
 
 (async () => {
   for (const scenario of ['missing', 'invalid', 'connection']) {
-    const env = scenario === 'missing' ? {} : { NEXT_PUBLIC_SUPABASE_URL: scenario === 'invalid' ? 'invalid' : 'https://example.supabase.co', NEXT_PUBLIC_SUPABASE_ANON_KEY: 'test-only-key' };
+    const env = scenario === 'missing' ? {} : { NEXT_PUBLIC_SUPABASE_URL: scenario === 'invalid' ? 'invalid' : 'https://example.supabase.co', NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: 'test-only-key' };
     const config = load('lib/supabase/config.ts', {}, env);
     let providerCalls = 0;
     const { proxy } = load('proxy.ts', {

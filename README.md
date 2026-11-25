@@ -16,7 +16,7 @@ Open http://localhost:3000. Production: `npm run build` then `npm start`.
 The connected Supabase project is **baraabar services**, reference `leavskuqqhwfghbkickj`, in Mumbai. The local CLI is linked to this project. Its configuration is in ignored `.env.local`. Copy the variable names from `.env.example` when deploying and add values through the hosting provider's secret settings.
 
 - `NEXT_PUBLIC_SUPABASE_URL`
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
 - `SUPABASE_SERVICE_ROLE_KEY` (server only; never add a NEXT_PUBLIC prefix)
 
 Keep production cookies secure over HTTPS. `COOKIE_SECURE=false` is only for local HTTP production-mode testing, if your browser requires it.
@@ -78,6 +78,6 @@ Deploy on a Node.js host that supports Next.js App Router server rendering and A
 
 ## Production authentication troubleshooting
 
-If the public website works but both admin routes fail, check the Vercel runtime logs for `[admin-auth]`. Set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` (or `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`) for the Production environment. Set `SUPABASE_SERVICE_ROLE_KEY` for enquiry intake, request budgets and login rate limiting; never expose it as a public variable. Redeploy after updating environment variables. The proxy now returns a noindex, noncached 503 recovery page with `AUTH_CONFIGURATION` or `AUTH_CONNECTION` when initialization or provider access fails, rather than a bare 500. No credentials are included in diagnostics.
+If the public website works but both admin routes fail, check the Vercel runtime logs for `[admin-auth]`. Set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` for the Production environment. Set `SUPABASE_SERVICE_ROLE_KEY` for enquiry intake, request budgets and login rate limiting; never expose it as a public variable. Redeploy after updating environment variables. The proxy now returns a noindex, noncached 503 recovery page with `AUTH_CONFIGURATION` or `AUTH_CONNECTION` when initialization or provider access fails, rather than a bare 500. No credentials are included in diagnostics.
 
 Vercel currently redirects the apex domain to `www.baraabar.com`; the default SEO origin follows that host. `NEXT_PUBLIC_SITE_URL` overrides it when needed. Local development uses `http://localhost:3000` with `npm run dev`; do not assume a temporary QA server on port 3014 is still running.

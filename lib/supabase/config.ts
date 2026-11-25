@@ -1,7 +1,7 @@
 // Shared by the authentication proxy and server clients. Never log key values.
 export function publicSupabaseConfig() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
-  const key = (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY)?.trim();
+  const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY?.trim();
   if (!url || !key) return null;
   try {
     if (!['https:', 'http:'].includes(new URL(url).protocol)) return null;

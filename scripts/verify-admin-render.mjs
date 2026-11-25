@@ -6,7 +6,7 @@ import { chromium } from 'playwright-core';
 // Read-only rendering diagnostic. No email is sent, password changed, or lead modified.
 const base = process.env.TEST_BASE_URL || 'http://localhost:3014';
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
 const service = createClient(url, process.env.SUPABASE_SERVICE_ROLE_KEY, { auth: { persistSession: false, autoRefreshToken: false } });
 const cookies = [];
 const client = createServerClient(url, key, { cookies: { getAll: () => [], setAll: items => cookies.push(...items) } });

@@ -5,7 +5,7 @@ import { createClient } from '@supabase/supabase-js';
 import { createServerClient } from '@supabase/ssr';
 import { chromium } from 'playwright-core';
 const base=process.env.TEST_BASE_URL||'http://localhost:3012';
-const url=process.env.NEXT_PUBLIC_SUPABASE_URL;const key=process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const url=process.env.NEXT_PUBLIC_SUPABASE_URL;const key=process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
 const service=createClient(url,process.env.SUPABASE_SERVICE_ROLE_KEY,{auth:{persistSession:false,autoRefreshToken:false}});
 const anon=createClient(url,key,{auth:{persistSession:false,autoRefreshToken:false}});
 const ids=[];let browser;let temporaryUser;let debugPage;
