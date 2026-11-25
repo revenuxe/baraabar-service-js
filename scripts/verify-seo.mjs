@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 const base = process.env.TEST_BASE_URL || 'http://localhost:3014';
-const origin = process.env.NEXT_PUBLIC_SITE_URL || 'https://baraabar.com';
+const origin = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.baraabar.com';
 const paths = ['/', '/washing-machine-repair-bangalore', '/about', '/contact', '/privacy-policy', '/terms-and-conditions'];
 const titles = new Set();
 const descriptions = new Set();

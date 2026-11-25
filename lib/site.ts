@@ -1,5 +1,5 @@
 // Set the production origin before deployment so canonical URLs match the live host.
-const configuredUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim() || 'https://baraabar.com';
+const configuredUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim() || 'https://www.baraabar.com';
 // Reject path/query configuration rather than silently publishing incorrect canonicals.
 function productionOrigin(value: string | undefined) {
   if (!value) return undefined;
