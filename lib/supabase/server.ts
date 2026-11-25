@@ -1,6 +1,6 @@
 import 'server-only';
 import { createServerClient } from '@supabase/ssr';
-import { createClient } from '@supabase/supabase-js';
+import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
 import { publicSupabaseConfig, supabaseFetch } from './config';
 
@@ -14,17 +14,25 @@ export async function userClient() {
   cookies:{getAll(){return jar.getAll()},setAll(values){try{values.forEach(({name,value,options})=>jar.set(name,value,options))}catch{/* Server Components cannot set cookies. The proxy refreshes sessions. */}}},
  });
 }
-export function serverSupabaseKey() {
- const key = (process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY)?.trim();
- if (!key) throw new Error('Server-only Supabase key is not configured.');
- if (key.startsWith('sb_publishable_')) throw new Error('A publishable key cannot be used as the server-only Supabase key.');
- return key;
-}
-export function serviceClient() {
+let backendSession: Promise<{client: SupabaseClient; expiresAt: number}> | undefined;
+export async function backendClient() {
  const config = publicSupabaseConfig();
- const key = serverSupabaseKey();
- if (!config) throw new Error('Service enquiry storage is not configured on this server.');
- return createClient(config.url,key,{global:{fetch:supabaseFetch},auth:{persistSession:false,autoRefreshToken:false}});
+ const email = process.env.SUPABASE_BACKEND_EMAIL?.trim();
+ const password = process.env.SUPABASE_BACKEND_PASSWORD;
+ if (!config || !email || !password) throw new Error('Restricted backend account is not configured.');
+ if (backendSession) {
+  const session = await backendSession;
+  if (session.expiresAt > Date.now() + 60000) return session.client;
+  backendSession = undefined;
+ }
+ backendSession = (async () => {
+  const client = createClient(config.url,config.key,{global:{fetch:supabaseFetch},auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}});
+  const {data,error} = await client.auth.signInWithPassword({email,password});
+  if (error || !data.session || data.user?.app_metadata.role !== 'website_backend') throw new Error('Restricted backend authentication failed.');
+  return {client,expiresAt:(data.session.expires_at ?? 0)*1000};
+ })();
+ try { return (await backendSession).client; }
+ catch { backendSession = undefined; throw new Error('Restricted backend authentication failed.'); }
 }
 export async function verifiedAdmin() {
  const supabase = await userClient();

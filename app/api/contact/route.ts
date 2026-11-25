@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { services } from '../../../lib/services';
-import { serviceClient } from '../../../lib/supabase/server';
+import { backendClient } from '../../../lib/supabase/server';
 import { sameOrigin, withinBudget } from '../../../lib/request-security';
 export async function POST(request: Request) {
  if (!sameOrigin(request)) return NextResponse.json({error:'Invalid request origin.'},{status:403});
@@ -10,8 +10,8 @@ export async function POST(request: Request) {
  try {
   if(!await withinBudget(request,'contact',8,600))return NextResponse.json({error:'Too many enquiries. Please wait a few minutes or call +91 9886285028.'},{status:429});
   const selected=services.filter(s=>data.services.includes(s.title)).map(({title,price,starting})=>({title,price,starting}));
-  const {data:lead,error}=await serviceClient().from('leads').insert({name:data.name.trim(),mobile:data.mobile,pincode:data.pincode,services:selected,estimated_amount:selected.reduce((total,s)=>total+s.price,0),source:'website'}).select('id').single();
-  if(error)throw error;
-  return NextResponse.json({ok:true,reference:lead.id.slice(0,8).toUpperCase()},{status:201});
+  const {data:leadId,error}=await (await backendClient()).rpc('submit_website_enquiry',{customer_name:data.name.trim(),customer_mobile:data.mobile,customer_pincode:data.pincode,selected_services:selected,amount:selected.reduce((total,s)=>total+s.price,0)});
+  if(error || typeof leadId!=='string')throw new Error('Enquiry could not be saved.');
+  return NextResponse.json({ok:true,reference:leadId.slice(0,8).toUpperCase()},{status:201});
  }catch{return NextResponse.json({error:'We could not save your enquiry. Please try again or call +91 9886285028.'},{status:503});}
 }

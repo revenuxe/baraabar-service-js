@@ -1,6 +1,6 @@
 import 'server-only';
 import { createHmac } from 'node:crypto';
-import { serviceClient, serverSupabaseKey } from './supabase/server';
+import { backendClient } from './supabase/server';
 export function sameOrigin(request:Request) {
  const origin=request.headers.get('origin');
  if(!origin)return true;
@@ -11,8 +11,10 @@ export function sameOrigin(request:Request) {
 }
 export async function withinBudget(request:Request,scope:string,limit:number,seconds:number) {
  const ip=request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || request.headers.get('x-real-ip') || 'unknown';
- const key=createHmac('sha256',serverSupabaseKey()).update(`${scope}:${ip}`).digest('hex');
- const {data,error}=await serviceClient().rpc('consume_request_budget',{budget_key:key,max_hits:limit,window_secs:seconds});
+ const secret=process.env.REQUEST_BUDGET_SECRET;
+ if(!secret || secret.length<32)throw new Error('Request budget secret is not configured.');
+ const key=createHmac('sha256',secret).update(`${scope}:${ip}`).digest('hex');
+ const {data,error}=await (await backendClient()).rpc('consume_request_budget',{budget_key:key,max_hits:limit,window_secs:seconds});
  if(error || typeof data!=='boolean')throw new Error('Request budget service is unavailable.');
  return data;
 }

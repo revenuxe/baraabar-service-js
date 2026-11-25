@@ -17,7 +17,8 @@ The connected Supabase project is **baraabar services**, reference `leavskuqqhwf
 
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
-- `SUPABASE_SERVICE_ROLE_KEY` (server only; never add a NEXT_PUBLIC prefix)
+- `SUPABASE_BACKEND_EMAIL` and `SUPABASE_BACKEND_PASSWORD` (server-only restricted account)
+- `REQUEST_BUDGET_SECRET` (server-only random value, at least 32 characters)
 
 Keep production cookies secure over HTTPS. `COOKIE_SECURE=false` is only for local HTTP production-mode testing, if your browser requires it.
 
@@ -38,7 +39,7 @@ Successful requests are stored in Supabase and return an enquiry reference. An a
 
 `admin@baraabar.com` existed in the connected project. Its existing password was preserved and its server-controlled `app_metadata.role` was set to `admin`. Application admin access requires both the verified email and that role, with matching database row-level-security checks. This does not grant Supabase organisation/platform ownership.
 
-Unauthenticated and non-admin users cannot read or mutate lead records directly. Admin requests use the signed-in user's scoped Supabase client; the server service key is used only for public intake, request budgets, and trusted provisioning.
+Unauthenticated and non-admin users cannot read or mutate lead records directly. Admin requests use the signed-in user's scoped Supabase client; a separate restricted Auth account can only call the rate-budget and enquiry-intake functions. It cannot read leads, edit existing leads, or access the admin workspace. Application runtime code never reads service-role or Supabase secret keys.
 
 ## Validation
 
@@ -74,14 +75,27 @@ The production build, six-page SEO verification, read-only authenticated desktop
 
 Run `node scripts/verify-seo.mjs` and `node --env-file=.env.local scripts/verify-admin-render.mjs` against a running server (default port 3014; override `TEST_BASE_URL`). The admin diagnostic uses a temporary session without sending email or changing passwords. Its login-transition check intercepts a successful login response; it does not verify the existing administrator password.
 
-Deploy on a Node.js host that supports Next.js App Router server rendering and API routes; a static-only export cannot serve the admin workspace or enquiry API. Configure the three Supabase variables listed above through hosting secrets. Keep HTTPS and secure cookies enabled in production. After deployment, repeat public enquiry and administrator sign-in checks on the live domain, validate schema with Google Rich Results Test, and submit `https://www.baraabar.com/sitemap.xml` in Search Console. Live hosting/DNS and indexing are not verified by the local tests.
+Deploy on a Node.js host that supports Next.js App Router server rendering and API routes; a static-only export cannot serve the admin workspace or enquiry API. Configure the variables listed above through hosting secrets. Keep HTTPS and secure cookies enabled in production. After deployment, repeat public enquiry and administrator sign-in checks on the live domain, validate schema with Google Rich Results Test, and submit `https://www.baraabar.com/sitemap.xml` in Search Console. Live hosting/DNS and indexing are not verified by the local tests.
 
-## Production authentication troubleshooting
+## Restricted backend setup and login troubleshooting
 
-If the public website works but both admin routes fail, check the Vercel runtime logs for `[admin-auth]`. Set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` for the Production environment. Set `SUPABASE_SERVICE_ROLE_KEY` for enquiry intake, request budgets and login rate limiting; never expose it as a public variable. Redeploy after updating environment variables. The proxy now returns a noindex, noncached 503 recovery page with `AUTH_CONFIGURATION` or `AUTH_CONNECTION` when initialization or provider access fails, rather than a bare 500. No credentials are included in diagnostics.
+Apply both migrations in `supabase/migrations/` through your trusted Supabase SQL Editor or linked CLI. The second migration replaces the privileged rate-budget function and adds a narrowly scoped enquiry function. Both check the server-controlled Auth role internally. Anonymous callers cannot execute either function. Existing admin RLS policies remain in effect.
 
-Vercel currently redirects the apex domain to `www.baraabar.com`; the default SEO origin follows that host. `NEXT_PUBLIC_SITE_URL` overrides it when needed. Local development uses `http://localhost:3000` with `npm run dev`; do not assume a temporary QA server on port 3014 is still running.
+In Supabase Authentication, create a separate confirmed user with a unique generated password (at least 32 random characters). Do not use the administrator account. Using that user's UUID from Authentication, run in the SQL Editor:
 
-## Login POST 503
+```sql
+update auth.users
+set raw_app_meta_data = coalesce(raw_app_meta_data, '{}'::jsonb)
+    || '{"role":"website_backend"}'::jsonb
+where id = 'REPLACE_WITH_BACKEND_USER_UUID'::uuid;
+```
 
-The public publishable key identifies the application; login rate limiting also requires a private backend key to call `consume_request_budget`. Configure `SUPABASE_SECRET_KEY` (new secret key) or `SUPABASE_SERVICE_ROLE_KEY` (legacy fallback) in Vercel Production and redeploy. Never put an `sb_publishable_` key in these variables. `LOGIN_RATE_LIMIT_UNAVAILABLE` indicates failure before password authentication; check the private key, project match and database migration/RPC. `LOGIN_AUTH_UNAVAILABLE` indicates initialization or connectivity failure at Supabase Auth. Database failures return 503; only an exhausted request budget returns 429.
+Set its email and password as `SUPABASE_BACKEND_EMAIL` and `SUPABASE_BACKEND_PASSWORD` in local and hosting secrets. Generate a separate random `REQUEST_BUDGET_SECRET` of at least 32 characters. Keep all three free of the `NEXT_PUBLIC_` prefix. Keep the public project URL and publishable key configured too. Redeploy after setup. The backend signs in without browser cookies, caches its short-lived session in server memory, and authenticates again before expiry. Never grant this account the admin role. Keep public signup disabled if the site only needs the existing administrator and backend accounts.
+
+Remove `SUPABASE_SERVICE_ROLE_KEY` and `SUPABASE_SECRET_KEY` from the deployed site's environment. Application runtime no longer uses them. Legacy provisioning and integration scripts still require elevated credentials and should only run in a trusted local environment, never in the deployed app. This implementation has no privileged-key fallback or rate-limit bypass.
+
+`LOGIN_RATE_LIMIT_UNAVAILABLE` means restricted backend credentials, request-budget secret, migration, or connectivity need checking. `LOGIN_AUTH_UNAVAILABLE` means Supabase Auth initialization or connectivity failed. Infrastructure failures return 503; an exhausted request budget returns 429. Verify a public enquiry and administrator login after deployment.
+
+`.gitignore` excludes `.env*` except the empty `.env.example` template, plus the local initial-admin credential file. Do not force-add secret files. Ignoring files does not remove prior commits; rotate any credential previously committed or shared. Avoid storing production customer screenshots or database dumps in Git.
+
+Vercel redirects the apex domain to `www.baraabar.com`; the SEO origin follows that host. `NEXT_PUBLIC_SITE_URL` overrides it when needed. Local development uses `http://localhost:3000` with `npm run dev`.
