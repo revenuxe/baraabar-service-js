@@ -745,3 +745,10 @@ body{color:var(--text);background:#fff}
 
 /* Scale the location catalogue heading to its card width without wrapping. */
 .catalog-body{container-type:inline-size}.catalog-body>h2.location-catalog-title{font-size:clamp(.75rem,4.2cqi,1.625rem);white-space:nowrap;line-height:1.35;letter-spacing:-.025em;text-wrap:nowrap}
+
+/* Show two service cards per row on desktop. */
+@media(min-width:1000px){
+.catalog-services{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-top:12px;align-items:start}
+.catalog-services>.catalog-service{margin-top:0;min-width:0;grid-template-columns:minmax(0,1fr) clamp(110px,10vw,150px)}
+.catalog-services .service-thumbnail>img{height:auto;aspect-ratio:1}
+}
