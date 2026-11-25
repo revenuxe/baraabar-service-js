@@ -12,13 +12,16 @@ function ChatBotIcon() {
   return <svg className="wa-bot-icon" viewBox="0 0 64 64" fill="none" aria-hidden="true"><path d="M32 4C16.5 4 4 15.6 4 30c0 6.4 2.5 12.3 6.7 16.9L7 59l13.7-5.6A30 30 0 0 0 32 56c15.5 0 28-11.6 28-26S47.5 4 32 4Z" fill="currentColor" stroke="#fff" strokeWidth="2"/><path d="M32 5C17 5 5 16.2 5 30c0 6.4 2.5 12.3 6.8 16.7L8.6 57l12.2-5A29 29 0 0 0 32 54.7c15 0 27-11 27-24.7S47 5 32 5Z" stroke="#ffffff70" strokeWidth="1.3"/><rect x="16" y="21" width="32" height="21" rx="7" stroke="#fff" strokeWidth="2.8"/><path d="M12 28v7m40-7v7" stroke="#fff" strokeWidth="2.8" strokeLinecap="round"/><circle cx="25" cy="31" r="2" fill="#fff"/><circle cx="39" cy="31" r="2" fill="#fff"/><path d="M28 36c2.5 1.5 5.5 1.5 8 0" stroke="#fff" strokeWidth="1.8" strokeLinecap="round"/></svg>;
 }
 
-export function WhatsAppChat() {
+export function WhatsAppChat({ inline = false }: { inline?: boolean }) {
   const pathname = usePathname();
   const { bookingOpen } = useServiceSelection();
   const [open, setOpen] = useState(false);
+  const [visible, setVisible] = useState(!inline);
+  const container = useRef<HTMLDivElement>(null);
   const launcher = useRef<HTMLButtonElement>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const admin = pathname.startsWith('/admin');
+  const hidden = admin || (!inline && (pathname === '/' || pathname === '/washing-machine-repair-bangalore'));
   const href = `https://wa.me/${company.phoneHref.replace(/\D/g, '')}?text=${encodeURIComponent('Hi Baraabar! I need help with my washing machine in Bengaluru.')}`;
 
   function markSeen() {
@@ -28,14 +31,21 @@ export function WhatsAppChat() {
   function close() { markSeen(); setOpen(false); }
 
   useEffect(() => {
-    if (admin || bookingOpen) return;
+    if (!inline || hidden || bookingOpen || !container.current) return;
+    const observer = new IntersectionObserver(([entry]) => setVisible(entry.isIntersecting), { threshold: 0.25 });
+    observer.observe(container.current);
+    return () => observer.disconnect();
+  }, [inline, hidden, bookingOpen]);
+
+  useEffect(() => {
+    if (hidden || bookingOpen || !visible) return;
     try { if (sessionStorage.getItem(storageKey)) return; } catch {}
     timer.current = setTimeout(() => {
       setOpen(true);
       try { sessionStorage.setItem(storageKey, '1'); } catch {}
     }, 4000);
     return () => { if (timer.current) clearTimeout(timer.current); };
-  }, [admin, bookingOpen]);
+  }, [hidden, bookingOpen, visible]);
 
   useEffect(() => {
     if (!open) return;
@@ -46,8 +56,8 @@ export function WhatsAppChat() {
     return () => document.removeEventListener('keydown', escape);
   }, [open]);
 
-  if (admin || bookingOpen) return null;
-  return <div className="wa-widget">
+  if (hidden || bookingOpen) return null;
+  return <div ref={container} className={inline ? 'wa-widget wa-widget-inline' : 'wa-widget'}>
     {open && <section className="wa-panel" id="whatsapp-chat" role="region" aria-labelledby="wa-title">
       <header className="wa-header"><span className="wa-avatar"><img src="/brand/whatsapp.svg" alt="WhatsApp" width={30} height={30}/></span><div><h2 id="wa-title">Baraabar</h2><p>Typically replies on WhatsApp</p></div><button type="button" onClick={close} aria-label="Close WhatsApp chat"><X size={20}/></button></header>
       <div className="wa-conversation"><div className="wa-bubble"><span className="wa-sender">Baraabar Support</span><strong>Hi there! How can we help?</strong><p>Tell us your washing machine issue and Bengaluru PIN code.</p></div></div>
