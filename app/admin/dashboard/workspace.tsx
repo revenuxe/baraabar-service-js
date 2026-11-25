@@ -11,7 +11,14 @@ type Event={id:number;action:string;created_at:string};
 const date=(value:string)=>new Intl.DateTimeFormat('en-IN',{timeZone:'Asia/Kolkata',day:'numeric',month:'short',year:'numeric'}).format(new Date(value));
 const time=(value:string)=>new Intl.DateTimeFormat('en-IN',{timeZone:'Asia/Kolkata',hour:'numeric',minute:'2-digit'}).format(new Date(value));
 const localInput=(value:string|null)=>value?new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Kolkata',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false}).format(new Date(value)).replace(' ','T'):'';
-async function api(path:string,options?:RequestInit){const response=await fetch(path,{...options,headers:{'Content-Type':'application/json',...options?.headers}});const data=await response.json();if(!response.ok)throw new Error(data.error||'Something went wrong.');return data;}
+async function api(path:string,options?:RequestInit){
+ const timeout=AbortSignal.timeout(15000);
+ let response:Response;
+ try{response=await fetch(path,{...options,cache:'no-store',signal:options?.signal?AbortSignal.any([options.signal,timeout]):timeout,headers:{'Content-Type':'application/json',...options?.headers}})}catch(error){if(timeout.aborted)throw new Error('The server is taking too long to respond. Please retry.');throw error}
+ if(response.status===401){window.location.replace('/admin/login');throw new Error('Your session expired. Please sign in again.')}
+ const data=await response.json().catch(()=>{throw new Error('The server returned an unexpected response. Please reload the page.')});
+ if(!response.ok)throw new Error(data.error||'Something went wrong.');return data;
+}
 function Badge({status}:{status:LeadStatus}){return <span className={`lead-status status-${status}`}>{statusLabel(status)}</span>}
 
 export function Dashboard({email}:{email:string}){

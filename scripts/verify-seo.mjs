@@ -1,0 +1,46 @@
+import assert from 'node:assert/strict';
+const base = process.env.TEST_BASE_URL || 'http://localhost:3014';
+const origin = process.env.NEXT_PUBLIC_SITE_URL || 'https://baraabar.com';
+const paths = ['/', '/washing-machine-repair-bangalore', '/about', '/contact', '/privacy-policy', '/terms-and-conditions'];
+const titles = new Set();
+const descriptions = new Set();
+for (const path of paths) {
+  const response = await fetch(base + path);
+  assert.equal(response.status, 200, path);
+  const html = await response.text();
+  const title = [...html.matchAll(/<title>(.*?)<\/title>/gs)];
+  const description = [...html.matchAll(/<meta name="description" content="([^"]+)"/g)];
+  assert.equal(title.length, 1, path + ': title count');
+  assert.equal(description.length, 1, path + ': description count');
+  assert.ok(!titles.has(title[0][1]), 'Duplicate title');
+  assert.ok(!descriptions.has(description[0][1]), 'Duplicate description');
+  titles.add(title[0][1]); descriptions.add(description[0][1]);
+  // Next.js serializes the origin without a trailing slash in metadata tags.
+  const metadataUrl = path === '/' ? origin : `${origin}${path}`;
+  assert.ok(html.includes(`rel="canonical" href="${metadataUrl}"`), path + ': canonical');
+  assert.ok(html.includes(`property="og:url" content="${metadataUrl}"`), path + ': social URL');
+  assert.ok(html.includes('name="twitter:card" content="summary_large_image"'));
+  assert.equal([...html.matchAll(/<h1(?: |>)/g)].length, 1, path + ': H1 count');
+  const scripts = [...html.matchAll(/<script type="application\/ld\+json">(.*?)<\/script>/gs)];
+  assert.equal(scripts.length, 1, path + ': schema count');
+  const schema = JSON.parse(scripts[0][1]);
+  const business = schema['@graph'].find(node => node['@type'] === 'LocalBusiness');
+  assert.ok(business.address.streetAddress.includes('Glass factory'));
+  assert.equal(business.url, origin);
+  if (path !== '/') assert.ok(schema['@graph'].some(node => node['@type'] === 'BreadcrumbList'));
+  assert.ok(!html.includes('Umar Nagar'));
+  assert.ok(html.includes('/favicon.ico?'));
+  assert.ok(!/noindex/.test(html), path + ': accidental noindex');
+  console.log('PASS: metadata, canonical, social cards, H1, schema, favicon ' + path);
+}
+const sitemap = await (await fetch(base + '/sitemap.xml')).text();
+assert.equal([...sitemap.matchAll(/<loc>/g)].length, paths.length);
+for (const path of paths) assert.ok(sitemap.includes(`<loc>${origin}${path}</loc>`));
+assert.ok(!sitemap.includes('/admin'));
+const robots = await (await fetch(base + '/robots.txt')).text();
+assert.ok(robots.includes(`Sitemap: ${origin}/sitemap.xml`));
+assert.ok(robots.includes('Disallow: /admin'));
+const login = await (await fetch(base + '/admin/login')).text();
+assert.match(login, /name="robots" content="[^"]*noindex/);
+for (const asset of ['/favicon.ico', '/brand/whatsapp.svg', '/services/washer-diagnosis.webp']) assert.equal((await fetch(base + asset)).status, 200);
+console.log('PASS: production sitemap, robots, admin noindex, asset responses');

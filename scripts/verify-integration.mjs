@@ -14,7 +14,13 @@ function log(message){console.log('PASS '+message)}
 async function sessionCookies(authAction){const values=new Map();const client=createServerClient(url,key,{cookies:{getAll:()=>[...values.values()].map(({name,value})=>({name,value})),setAll:items=>items.forEach(item=>values.set(item.name,item))}});const result=await authAction(client);if(result.error)throw new Error('Test authentication could not be established');return [...values.values()].map(c=>({name:c.name,value:c.value,url:base,httpOnly:true,secure:false,sameSite:'Lax'}));}
 try{
  for(const path of ['/api/admin/leads','/api/admin/stats','/api/admin/export']){const r=await fetch(base+path);assert.equal(r.status,401);}
- const denied=await fetch(base+'/admin/dashboard',{redirect:'manual'});assert.equal(denied.status,307);assert.ok(denied.headers.get('location').includes('/admin/login'));log('Unauthenticated admin pages and lead APIs are protected');
+ const denied=await fetch(base+'/admin/dashboard',{redirect:'manual'});
+ if(denied.status===307){assert.ok(denied.headers.get('location').includes('/admin/login'))}else{
+  // A loading boundary starts streaming before auth completes. Next.js emits
+  // its redirect in the HTML rather than changing the already-sent 200 status.
+  assert.equal(denied.status,200);const html=await denied.text();assert.ok(html.includes('NEXT_REDIRECT')&&html.includes('/admin/login'));assert.ok(!html.includes('Your service day, at a glance.'));
+ }
+ log('Unauthenticated admin pages and lead APIs are protected');
  const exposed=await anon.from('leads').select('id');assert.ok(exposed.error);log('Anonymous database access is denied');
  const write=await anon.from('leads').insert({name:'Not allowed',mobile:'9876543210',pincode:'560045'});assert.ok(write.error);log('Anonymous database inserts are denied');
  const bad=await fetch(base+'/api/contact',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:'X',mobile:'1',pincode:'1',services:[]})});assert.equal(bad.status,400);log('Invalid contact data is rejected');

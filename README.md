@@ -60,3 +60,18 @@ Browser QA screenshots are in `artifacts/`; they contain synthetic test data onl
 ## Company pages
 
 `/about`, `/contact`, `/terms-and-conditions`, and `/privacy-policy` share contact details and links. The legal pages are tailored drafts and should be reviewed against actual operating procedures before public launch.
+# Bangalore landing page SEO
+
+The location page is available at `/washing-machine-repair-bangalore` and linked in the shared footer. It reuses the homepage catalogue, booking flow, care guides, and enquiry form, with a dedicated Bangalore H1, local content, and FAQs. All six public routes share metadata from `lib/seo.ts` and linked JSON-LD from `app/page-schema.tsx`: LocalBusiness, WebSite, page-specific WebPage/AboutPage/ContactPage, breadcrumbs when the production origin is set, and Service/OfferCatalog on both landing pages. Business address and contact details come from `lib/company.ts`.
+
+The confirmed production origin defaults to `https://baraabar.com`. `NEXT_PUBLIC_SITE_URL` can override it with another HTTP(S) origin if the deployment domain changes. Canonical URLs, social images, breadcrumbs, and `/sitemap.xml` use this shared origin. `/robots.txt` excludes admin and API routes from crawling; authentication continues to protect admin access.
+
+After deployment, validate the live URL with Google's Rich Results Test, submit the sitemap in Google Search Console, and request indexing. Business Profile ownership, Search Console verification, and indexing require the actual production domain and account access. Search appearance and rankings are not guaranteed.
+
+## Launch verification
+
+The production build, six-page SEO verification, read-only authenticated desktop/mobile dashboard diagnostic, and full enquiry/admin integration suite pass locally. The login success handler uses a full page navigation to avoid overlapping router navigation and refresh. Admin routes include loading and recovery screens; dashboard requests time out after 15 seconds and return expired sessions to sign in.
+
+Run `node scripts/verify-seo.mjs` and `node --env-file=.env.local scripts/verify-admin-render.mjs` against a running server (default port 3014; override `TEST_BASE_URL`). The admin diagnostic uses a temporary session without sending email or changing passwords. Its login-transition check intercepts a successful login response; it does not verify the existing administrator password.
+
+Deploy on a Node.js host that supports Next.js App Router server rendering and API routes; a static-only export cannot serve the admin workspace or enquiry API. Configure the three Supabase variables listed above through hosting secrets. Keep HTTPS and secure cookies enabled in production. After deployment, repeat public enquiry and administrator sign-in checks on the live domain, validate schema with Google Rich Results Test, and submit `https://baraabar.com/sitemap.xml` in Search Console. Live hosting/DNS and indexing are not verified by the local tests.

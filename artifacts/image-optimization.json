@@ -1,0 +1,112 @@
+{
+  "before": 764778,
+  "after": 274558,
+  "savedPercent": 64,
+  "images": [
+    {
+      "file": "public\\services\\care-error.webp",
+      "before": 33848,
+      "after": 17314,
+      "width": 800,
+      "height": 800
+    },
+    {
+      "file": "public\\services\\care-replace.webp",
+      "before": 70002,
+      "after": 34640,
+      "width": 800,
+      "height": 800
+    },
+    {
+      "file": "public\\services\\care-seal.webp",
+      "before": 72034,
+      "after": 35872,
+      "width": 800,
+      "height": 800
+    },
+    {
+      "file": "public\\services\\checkup-meter.webp",
+      "before": 99588,
+      "after": 19338,
+      "width": 480,
+      "height": 480
+    },
+    {
+      "file": "public\\services\\deep-clean.webp",
+      "before": 6286,
+      "after": 2544,
+      "width": 123,
+      "height": 104
+    },
+    {
+      "file": "public\\services\\descaling.webp",
+      "before": 6612,
+      "after": 2694,
+      "width": 122,
+      "height": 103
+    },
+    {
+      "file": "public\\services\\front-load.webp",
+      "before": 26528,
+      "after": 8538,
+      "width": 480,
+      "height": 480
+    },
+    {
+      "file": "public\\services\\installation.webp",
+      "before": 4284,
+      "after": 1586,
+      "width": 123,
+      "height": 99
+    },
+    {
+      "file": "public\\services\\semi-automatic.webp",
+      "before": 17404,
+      "after": 5540,
+      "width": 480,
+      "height": 480
+    },
+    {
+      "file": "public\\services\\service-professional.webp",
+      "before": 97332,
+      "after": 33500,
+      "width": 800,
+      "height": 800
+    },
+    {
+      "file": "public\\services\\top-load.webp",
+      "before": 17148,
+      "after": 4904,
+      "width": 480,
+      "height": 480
+    },
+    {
+      "file": "public\\services\\washer-diagnosis.webp",
+      "before": 159740,
+      "after": 57624,
+      "width": 1200,
+      "height": 800
+    },
+    {
+      "file": "public\\services\\washer-disconnection.webp",
+      "before": 71714,
+      "after": 22296,
+      "width": 800,
+      "height": 800
+    },
+    {
+      "file": "public\\brand\\baraabar-icon.webp",
+      "before": 23116,
+      "after": 5146,
+      "width": 192,
+      "height": 174
+    },
+    {
+      "file": "public\\brand\\baraabar-logo.webp",
+      "before": 59142,
+      "after": 23022,
+      "width": 800,
+      "height": 164
+    }
+  ]
+}
