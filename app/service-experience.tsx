@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import { ServiceDropdown } from './service-dropdown';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { services } from '../lib/services';
 import { company } from '../lib/company';
 import { useServiceSelection } from './service-selection';
@@ -13,6 +13,23 @@ import { Menu, Search, Phone, UserRound, ShoppingCart, BookOpen, Wrench, Chevron
 export function ServiceExperience({ location }: { location?: string }) {
   const [panel, setPanel] = useState<'account'|'cart'|'support'|null>(null);
   const [menu, setMenu] = useState(false);
+  const header = useRef<HTMLElement>(null);
+  const menuButton = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    if (!menu) return;
+    function outside(event: PointerEvent) {
+      if (!header.current?.contains(event.target as Node)) setMenu(false);
+    }
+    function escape(event: KeyboardEvent) {
+      if (event.key === 'Escape') { setMenu(false); menuButton.current?.focus(); }
+    }
+    document.addEventListener('pointerdown', outside);
+    document.addEventListener('keydown', escape);
+    return () => {
+      document.removeEventListener('pointerdown', outside);
+      document.removeEventListener('keydown', escape);
+    };
+  }, [menu]);
   const [serviceFilter, setServiceFilter] = useState('');
   const { selected, setSelected, setBookingOpen } = useServiceSelection();
   function addService(title: string) {
@@ -22,10 +39,10 @@ export function ServiceExperience({ location }: { location?: string }) {
   const matchingServices = serviceFilter ? services.filter(service => service.title === serviceFilter) : services;
   return <>
     <section className="service-intro" id="home">
-      <header className="service-header">
+      <header className="service-header" ref={header}>
         <div className="utility-row"><a className="header-icon-logo" href="#home" aria-label="Baraabar home"><Image src="/brand/baraabar-icon.webp" alt="Baraabar" width={770} height={689} priority/></a><div><a href="/contact">Contact us</a><a className="support-pill call-now" href={company.phoneHref}><Phone size={14}/>Call Now</a></div></div>
-        <nav className="main-header" aria-label="Main navigation"><button className="round-control" aria-label={menu?'Close menu':'Open menu'} onClick={()=>setMenu(!menu)} aria-expanded={menu}>{menu?<X size={21}/>:<Menu size={21}/>}</button><div className="header-actions"><a className="round-control" href="#issue-search" aria-label="Search services"><Search size={20}/></a><button className="round-control" aria-label="Account information" onClick={()=>setPanel('account')}><UserRound size={20}/></button><button className="round-control cart-control" aria-label={`Service list, ${selected.length} selected`} onClick={()=>setPanel('cart')}><ShoppingCart size={20}/>{selected.length>0&&<span>{selected.length}</span>}</button></div></nav>
-        {menu&&<div className="header-dropdown">{[['Washing machine services','#services'],['Repair process','#why-us'],['Care guides','#resources'],['Frequently asked questions','#faq'],['About us','/about'],['Contact us','/contact'],['Terms & Conditions','/terms-and-conditions'],['Privacy Policy','/privacy-policy']].map(([label,href])=><a key={href} href={href} onClick={()=>setMenu(false)}>{label}<ChevronRight size={16}/></a>)}</div>}
+        <nav className="main-header" aria-label="Main navigation"><button className="round-control" ref={menuButton} aria-controls={menu ? "header-navigation" : undefined} aria-label={menu?'Close menu':'Open menu'} onClick={()=>setMenu(!menu)} aria-expanded={menu}>{menu?<X size={21}/>:<Menu size={21}/>}</button><div className="header-actions"><a className="round-control" href="#issue-search" aria-label="Search services" onClick={()=>setMenu(false)}><Search size={20}/></a><button className="round-control" aria-label="Account information" onClick={()=>{setMenu(false);setPanel('account')}}><UserRound size={20}/></button><button className="round-control cart-control" aria-label={`Service list, ${selected.length} selected`} onClick={()=>{setMenu(false);setPanel('cart')}}><ShoppingCart size={20}/>{selected.length>0&&<span>{selected.length}</span>}</button></div></nav>
+        {menu&&<div className="header-dropdown" id="header-navigation">{[['Washing machine services','#services'],['Repair process','#why-us'],['Care guides','#resources'],['Frequently asked questions','#faq'],['About us','/about'],['Contact us','/contact'],['Terms & Conditions','/terms-and-conditions'],['Privacy Policy','/privacy-policy']].map(([label,href])=><a key={href} href={href} onClick={()=>setMenu(false)}>{label}<ChevronRight size={16}/></a>)}</div>}
       </header>
       <div className="support-content"><h1>{location ? `Washing Machine Repair in ${location}` : "Washing Machine Repair Services"}</h1><p className="intro-tagline">{location ? "Bengaluru washer repair, installation & care. Checkups from \u20B9199." : "Always at your service"}</p><ServiceDropdown value={serviceFilter} onChange={setServiceFilter}/>{serviceFilter && <div className="service-picker-status" role="status"><a href="#services">View selected service</a><button type="button" onClick={()=>setServiceFilter('')}>Show all services</button></div>}
 

@@ -1,0 +1,4 @@
+.env*
+.admin-credentials.local.txt
+artifacts/
+supabase/.temp/
