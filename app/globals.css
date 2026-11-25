@@ -752,3 +752,14 @@ body{color:var(--text);background:#fff}
 .catalog-services>.catalog-service{margin-top:0;min-width:0;grid-template-columns:minmax(0,1fr) clamp(110px,10vw,150px)}
 .catalog-services .service-thumbnail>img{height:auto;aspect-ratio:1}
 }
+
+/* Platform attribution and the shared independent service disclaimer. */
+.about-platform{display:flex;align-items:center;justify-content:space-between;gap:28px;padding:32px clamp(22px,7vw,130px);background:#fff;border-top:1px solid #dce6f2}
+.about-platform h2{font-size:1.5rem;line-height:1.3}
+.about-platform p{max-width:650px;margin-top:10px;font-size:1rem;line-height:1.7;color:#586e87}
+.about-platform>a{flex-shrink:0;display:inline-flex;padding:12px 18px;border:1px solid #c8d7e8;border-radius:9px;color:#164b83;font-size:1rem;font-weight:600;text-decoration:underline;text-underline-offset:4px}
+.about-platform>a:hover{background:#f2f6fb}
+.service-disclaimer{padding:24px clamp(22px,7vw,130px);background:#f2f6fb;border-top:1px solid #dce6f2}
+.service-disclaimer p{max-width:1200px;margin:0;font-size:.875rem;line-height:1.75;color:#586e87}
+.service-disclaimer strong{color:#002048}
+@media(max-width:700px){.about-platform{align-items:flex-start;flex-direction:column;gap:18px;padding-block:28px}.about-platform h2{font-size:1.375rem}.service-disclaimer{padding-block:20px}}
