@@ -7,7 +7,7 @@ import { chromium } from 'playwright-core';
 const base = process.env.TEST_BASE_URL || 'http://localhost:3014';
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
-const service = createClient(url, process.env.SUPABASE_SERVICE_ROLE_KEY, { auth: { persistSession: false, autoRefreshToken: false } });
+const service = createClient(url, (process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY), { auth: { persistSession: false, autoRefreshToken: false } });
 const cookies = [];
 const client = createServerClient(url, key, { cookies: { getAll: () => [], setAll: items => cookies.push(...items) } });
 let browser;
